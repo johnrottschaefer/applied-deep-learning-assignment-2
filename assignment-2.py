@@ -13,7 +13,7 @@ class YahooLSTM(nn.Module):
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True) # main LSTM layer
         self.linear = nn.Linear(hidden_size, 1) # final output layer
 
-    def forward(self, x):
+    def forward(self, x): # forward pass definition
         x, _ = self.lstm(x)
         x = self.linear(x)
         return x
@@ -21,24 +21,24 @@ class YahooLSTM(nn.Module):
 def load_data(ticker, start, end):
     df = yfinance.download(ticker, start=start, end=end) # import data
     df.dropna(inplace=True) # drop null values
-    return df['Close'].sort_index()
+    return df['Close'].sort_index() # return datafram wtih sorted index
 
 def split_data(data, tstart, tend):
-    test_start = str(int(tend) + 1)
-    train_set = data.loc[tstart:tend]
-    test_set = data.loc[test_start:]
-    return train_set, test_set
+    test_start = str(int(tend) + 1) # determine start for test set
+    train_set = data.loc[tstart:tend] # split training set
+    test_set = data.loc[test_start:] # split test set
+    return train_set, test_set # return both train and test set
 
 def create_timeseries_windows(data, window_length):
     
-    X, y = [], []
+    X, y = [], [] # initialize arrays
     for i in range(len(data) - window_length):
-        feature = data[i: i + window_length]
-        target = data[i+1: i + window_length + 1]
-        X.append(feature)
-        y.append(target)
+        feature = data[i: i + window_length] # split from i to window length
+        target = data[i+1: i + window_length + 1] # split out target values
+        X.append(feature) # collect feature
+        y.append(target) # collect target
 
-    return torch.Tensor(X), torch.Tensor(y)
+    return torch.Tensor(X), torch.Tensor(y) # return as tensors
 
 
 
@@ -52,11 +52,11 @@ batch_size = 32
 
 
 
-stock_data = load_data(ticker=ticker, start=load_start, end=load_end)
-train, test = split_data(data=stock_data, tstart=split_start, tend=split_end)
+stock_data = load_data(ticker=ticker, start=load_start, end=load_end) # get stock data
+train, test = split_data(data=stock_data, tstart=split_start, tend=split_end) # split stock data into train test sets
 
-X_train, y_train = create_timeseries_windows(data=train.values, window_length=window_length)
-X_test, y_test = create_timeseries_windows(data=test.values, window_length=window_length)
+X_train, y_train = create_timeseries_windows(data=train.values, window_length=window_length) # create time series training sets
+X_test, y_test = create_timeseries_windows(data=test.values, window_length=window_length) # create time series test sets
 
 
 
