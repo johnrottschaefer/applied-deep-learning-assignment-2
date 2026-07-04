@@ -41,7 +41,7 @@ def create_timeseries_windows(data, window_length):
     return torch.Tensor(X), torch.Tensor(y) # return as tensors
 
 
-
+# initialize variables
 ticker = 'AAPL'
 load_start = '2015-01-01'
 load_end = datetime.datetime.now()
@@ -60,27 +60,28 @@ X_test, y_test = create_timeseries_windows(data=test.values, window_length=windo
 
 
 
-model = YahooLSTM()
-optimizer = torch.optim.Adam(params=model.parameters())
-loss_function = nn.MSELoss()
-data_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(X_train, y_train), shuffle=True, batch_size=batch_size)
-epochs = 300
+model = YahooLSTM() # load earlier defined model
+optimizer = torch.optim.Adam(params=model.parameters()) # select optimizer
+loss_function = nn.MSELoss() # select loss function
+data_loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(X_train, y_train), shuffle=True, batch_size=batch_size) # batch and shuffle data
+epochs = 300 #set epochs
 
 
 
-for epoch in range(epochs):
+# run training loop for the amound of epochs
+for epoch in range(epochs):  
     model.train()
     for X_batch, y_batch in data_loader:
-        y_pred = model(X_batch)
-        loss = loss_function(y_pred, y_batch)
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
+        y_pred = model(X_batch) # predict results for each batch
+        loss = loss_function(y_pred, y_batch) # calculate loss for each batch
+        optimizer.zero_grad() # back propogate loss
+        loss.backward() # back propogate loss
+        optimizer.step() # update model weights
     # Validation
     if epoch % 50 != 49:
         continue
     model.eval()
-    with torch.no_grad():
+    with torch.no_grad(): # std out test and train loss for every 50 epochs
         y_pred = model(X_train)
         train_rmse = torch.sqrt(loss_function(y_pred, y_train))
         y_pred = model(X_test)
@@ -88,4 +89,4 @@ for epoch in range(epochs):
         
     print("Epoch %d: train RMSE %.4f, test RMSE %.4f" % (epoch, train_rmse, test_rmse))
 
-torch.save(model.state_dict(), "model.pth")
+torch.save(model.state_dict(), "model.pth") # save model.pth
